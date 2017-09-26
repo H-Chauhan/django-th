@@ -3,7 +3,7 @@ import os
 from django.core.urlresolvers import reverse_lazy
 
 DEBUG = False
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', ]
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -345,6 +345,16 @@ CACHES = {
     },
     # Wallabag
     'th_wallabag':
+        {
+            'TIMEOUT': 3600,
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/11",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        },
+    # Mastodon
+    'th_mastodon':
     {
         'TIMEOUT': 3600,
         "BACKEND": "django_redis.cache.RedisCache",
