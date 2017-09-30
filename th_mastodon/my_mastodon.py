@@ -19,7 +19,7 @@ from th_mastodon.models import Mastodon
 
 logger = getLogger('django_th.trigger_happy')
 
-cache = caches['th_mastodon']
+cache = caches['django_th']
 
 
 class ServiceMastodon(ServicesMgr):
@@ -32,22 +32,6 @@ class ServiceMastodon(ServicesMgr):
         self.token = token
         self.service = 'ServiceMastodon'
         self.user = kwargs.get('user')
-        """
-        # Create actual API instance
-        us = UserService.objects.get(user=self.user,
-                                     token=token,
-                                     name='ServiceMastodon')
-        try:
-            self.toot_api = MastodonAPI(
-                client_id=us.client_id,
-                access_token=token,
-                api_base_url=us.host
-            )
-        except MastodonIllegalArgumentError as e:
-            us = UserService.objects.get(token=token)
-            logger.error(e.msg, e.error_code)
-            update_result(us.trigger_id, msg=e.msg, status=False)
-        """
 
     def read_data(self, **kwargs):
         """
@@ -190,12 +174,27 @@ class ServiceMastodon(ServicesMgr):
             content = str("{title} {link}").format(
                 title=title, link=data.get('link'))
 
-            content += self.get_tags(trigger_id)
-        else:
-            content = self.set_mastodon_content(content)
+        content += self.get_tags(trigger_id)
+
+        content = self.set_mastodon_content(content)
+
+        us = UserService.objects.get(user=self.user,
+                                     token=self.token,
+                                     name='ServiceMastodon')
 
         try:
-            self.mastodon.toot(content)
+            self.toot_api = MastodonAPI(
+                client_id=us.client_id,
+                client_secret=us.client_secret,
+                access_token=self.token,
+                api_base_url=us.host
+            )
+        except ValueError as e:
+            logger.error(e)
+            update_result(trigger_id, msg=e, status=False)
+
+        try:
+            self.toot_api.toot(content)
             status = True
         except Exception as inst:
             logger.critical("Mastodon ERR {}".format(inst))
@@ -216,7 +215,7 @@ class ServiceMastodon(ServicesMgr):
 
         tags = ''
 
-        if len(trigger.tag) > 0:
+        if trigger.tag is not None:
             # is there several tag ?
             tags = ["#" + tag.strip() for tag in trigger.tag.split(',')
                     ] if ',' in trigger.tag else "#" + trigger.tag
@@ -239,6 +238,17 @@ class ServiceMastodon(ServicesMgr):
 
         return content
 
+    def title_or_content(self, title):
+        """
+        If the title always contains 'New status from'
+        drop the title and get 'the content' instead
+        :param title:
+        :return:
+        """
+        if "New status by" in title:
+            return False
+        return True
+
     def auth(self, request):
         """
             get the auth of the services
@@ -247,10 +257,13 @@ class ServiceMastodon(ServicesMgr):
             :rtype: dict
         """
         # create app
+        redirect_uris = '%s://%s%s' % (request.scheme, request.get_host(),
+                                       reverse('mastodon_callback'))
         us = UserService.objects.get(user=request.user,
                                      name='ServiceMastodon')
         client_id, client_secret = MastodonAPI.create_app(
-            client_name="TriggerHappy", api_base_url=us.host)
+            client_name="TriggerHappy", api_base_url=us.host,
+            redirect_uris=redirect_uris)
 
         us.client_id = client_id
         us.client_secret = client_secret
@@ -264,9 +277,7 @@ class ServiceMastodon(ServicesMgr):
             client_secret=client_secret,
             api_base_url=us.host
         )
-        print("username=" + us.username + " password=" + us.password)
         token = mastodon.log_in(username=us.username, password=us.password)
-        print("access_token apres log_in ", token)
         us.token = token
         us.save()
         return self.callback_url(request)
@@ -282,7 +293,6 @@ class ServiceMastodon(ServicesMgr):
         )
         redirect_uris = '%s://%s%s' % (request.scheme, request.get_host(),
                                        reverse('mastodon_callback'))
-        print(redirect_uris)
         return mastodon.auth_request_url(redirect_uris=redirect_uris)
 
     def callback(self, request, **kwargs):
@@ -295,11 +305,4 @@ class ServiceMastodon(ServicesMgr):
             :type kwargs: dict
             :rtype: string
         """
-        super(ServiceMastodon, self).callback(request, **kwargs)
-        access_token = request.session['oauth_token'] + "#TH#"
-        access_token += str(request.session['oauth_id'])
-        UserService.objects.filter(user=self.user,
-                                   name='ServiceMastodon'
-                                   ).update(token=access_token)
-        kwargs = {'access_token': access_token}
         return 'mastodon/callback.html'

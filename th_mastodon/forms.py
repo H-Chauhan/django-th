@@ -12,7 +12,7 @@ class MastodonForm(forms.ModelForm):
 
     class Meta:
         model = Mastodon
-        fields = ('timeline', 'tooter', 'tag', 'fav')
+        fields = ['timeline', 'tooter', 'tag', 'fav']
 
 
 class MastodonProviderForm(MastodonForm):

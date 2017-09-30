@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255)),
                 ('status', models.BooleanField(default=False)),
                 ('description', models.CharField(max_length=255)),
-                ('timeline', models.CharField(default='home', max_length=10)),
+                ('timeline', models.CharField(choices=[('home', 'Home'), ('public', 'Public')], default='home', max_length=10)),
                 ('tooter', models.CharField(blank=True, max_length=80, null=True)),
                 ('fav', models.BooleanField(default=False)),
                 ('tag', models.CharField(blank=True, max_length=80, null=True)),
