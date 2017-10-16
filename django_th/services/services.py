@@ -29,7 +29,7 @@ class ServicesMgr(object):
     body = ''
     data = {}
 
-    class __ServicesMgr:
+    class __ServicesMgr:  # NOQA
 
         def __init__(self, arg):
             self.val = arg
@@ -135,7 +135,8 @@ class ServicesMgr(object):
         cache_data = cache.get(kwargs.get('cache_stack') + '_' +
                                kwargs.get('trigger_id'))
         return PublishingLimit.get_data(kwargs.get('cache_stack'),
-                                        cache_data, kwargs.get('trigger_id'))
+                                        cache_data,
+                                        int(kwargs.get('trigger_id')))
 
     def save_data(self, trigger_id, **data):
         """
@@ -158,7 +159,7 @@ class ServicesMgr(object):
             # pandoc to convert tools
             import pypandoc
             content = pypandoc.convert(content,
-                                       data.get('output_format'),
+                                       str(data.get('output_format')),
                                        format='html')
         return title, content
 
@@ -225,7 +226,6 @@ class ServicesMgr(object):
                 request.session['oauth_token_secret'],
                 request.GET.get('oauth_verifier', '')
             )
-            print(request.session)
         else:
             access_token = kwargs.get('access_token')
 
@@ -267,7 +267,7 @@ class ServicesMgr(object):
             request.session['oauth_token'] = request_token['oauth_token']
             request.session['oauth_token_secret'] = request_token[
                 'oauth_token_secret']
-            print(request.session)
+
             return request_token
         else:
             callback_url = self.callback_url(request)

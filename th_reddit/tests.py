@@ -2,8 +2,11 @@
 from django.test import TestCase
 from django.conf import settings
 from django.contrib.auth.models import User
-from th_reddit.models import Reddit
+
 from django_th.models import TriggerService, UserService, ServicesActivated
+
+from th_reddit.models import Reddit
+from th_reddit.my_reddit import ServiceReddit
 from th_reddit.forms import RedditProviderForm, RedditConsumerForm
 
 
@@ -48,14 +51,17 @@ class RedditTest(TestCase):
                                              description=description,
                                              status=status)
 
-    def create_reddit(self):
+    def create_reddit(self, share_link=False):
         """
             Create a Reddit object related to the trigger object
         """
         trigger = self.create_triggerservice()
-        name = 'reddit'
+        subreddit = 'python'
         status = True
-        return Reddit.objects.create(trigger=trigger, name=name, status=status)
+        return Reddit.objects.create(trigger=trigger,
+                                     subreddit=subreddit,
+                                     share_link=share_link,
+                                     status=status)
 
     def test_reddit(self):
         """
@@ -63,7 +69,7 @@ class RedditTest(TestCase):
         """
         d = self.create_reddit()
         self.assertTrue(isinstance(d, Reddit))
-        self.assertEqual(d.show(), "My Reddit %s" % d.name)
+        self.assertEqual(d.show(), "My Reddit %s" % d.subreddit)
 
     """
         Form
@@ -74,7 +80,7 @@ class RedditTest(TestCase):
            test if that form is a valid provider one
         """
         d = self.create_reddit()
-        data = {'name': d.name}
+        data = {'subreddit': d.subreddit, 'share_link': d.share_link}
         form = RedditProviderForm(data=data)
         self.assertTrue(form.is_valid())
 
@@ -91,7 +97,7 @@ class RedditTest(TestCase):
            test if that form is a valid consumer one
         """
         d = self.create_reddit()
-        data = {'name': d.name}
+        data = {'subreddit': d.subreddit, 'share_link': d.share_link}
         form = RedditConsumerForm(data=data)
         self.assertTrue(form.is_valid())
 
@@ -106,5 +112,65 @@ class RedditTest(TestCase):
         """
             does this settings exists ?
         """
-        self.assertTrue(settings.TH_REDDIT)
+        self.assertTrue(settings.TH_REDDIT_KEY)
 
+
+class ServiceRedditTest(RedditTest):
+
+    def setUp(self):
+        super(ServiceRedditTest, self).setUp()
+        self.data = {'text': 'something #thatworks'}
+        self.token = 'QWERTY123#TH#12345'
+        self.trigger_id = 1
+        self.service = ServiceReddit(self.token)
+    """
+    @patch('praw.Reddit')
+    def test_read_data(self, mock1):
+        t = self.create_reddit()
+        kwargs = dict({'date_triggered': '2013-05-11 13:23:58+00:00',
+                       'model_name': 'Reddit',
+                       'trigger_id': t.trigger_id})
+
+        se = ServiceReddit(self.token)
+        res = se.read_data(**kwargs)
+        self.assertTrue(type(res) is bool)
+        mock1.assert_called_with(t.subreddit)
+
+    @patch('praw.Reddit')
+    def test_save_data(self, mock1):
+        t = self.create_reddit()
+        token = self.token
+        trigger_id = self.trigger_id
+
+        self.data['title'] = 'Toot from'
+        self.data['link'] = 'http://domain.ltd'
+
+        content = str("{title} {link}").format(
+            title=self.data.get('title'),
+            link=self.data.get('link'))
+
+        self.data['content'] = content
+
+        self.assertTrue(token)
+        self.assertTrue(isinstance(trigger_id, int))
+
+        se = ServiceReddit(self.token)
+        res = se.save_data(trigger_id, **self.data)
+        self.assertTrue(type(res) is bool)
+        mock1.assert_called_with(t.subreddit)
+
+    def test_save_data2(self):
+        self.create_reddit()
+        data = {'link': '',
+                'title': '',
+                'content': ''}
+        self.token = ''
+        se = ServiceReddit(self.token)
+        res = se.save_data(self.trigger_id, **data)
+        self.assertFalse(res)
+    """
+    def test_auth(self):
+        pass
+
+    def test_callback(self):
+        pass

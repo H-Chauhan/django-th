@@ -6,105 +6,23 @@ Service Description:
 
 a Social Network
 
-modifications of settings.py
-----------------------------
+Requesting a key
+----------------
 
-1) INSTALLED_APPS :
+Access the page https://apps.twitter.com/app/new
 
-add or uncomment the following line
+* in the field "WebSite", set https://<yourdomain.com>
+* in the field "Callback URL", set https://<yourdomain.com>/th/callbacktwitter
 
-.. code-block:: python
+then validate and grab the key on the next page
 
-    INSTALLED_APPS = (
-        # 'th_twitter',
-    )
+The service keys
+----------------
 
-to get
-
-.. code-block:: python
-
-    INSTALLED_APPS = (
-        'th_twitter',
-    )
-
-2) Cache :
-
-After the default cache add :
+Here are the modifications of .env file you will need to make to be able to use your credentials with Twitter
 
 .. code-block:: python
 
-    CACHES = {
-        'default':
-        {
-            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-            'LOCATION': BASE_DIR + '/cache/',
-            'TIMEOUT': 600,
-            'OPTIONS': {
-                'MAX_ENTRIES': 1000
-            }
-        },
-        # Twitter Cache
-        'th_twitter':
-        {
-            'TIMEOUT': 500,
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://127.0.0.1:6379/5",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
-        },
+    TH_TWITTER_CONSUMER_KEY= 'your twitter key'
+    TH_TWITTER_CONSUMER_SECRET= 'your twitter secret'
 
-modifications of th_settings.py
--------------------------------
-
-1) TH_SERVICES
-
-add or uncomment the following line
-
-.. code-block:: python
-
-    TH_SERVICES = (
-        # 'th_twitter.my_twitter.ServiceTwitter',
-    )
-
-to get
-
-.. code-block:: python
-
-    TH_SERVICES = (
-        'th_twitter.my_twitter.ServiceTwitter',
-    )
-
-2) The service keys
-
-It's strongly recommended that your put the following in a local_settings.py, to avoid to accidentally push this to a public repository
-
-
-.. code-block:: python
-
-    TH_TWITTER = {
-        # get your credential by subscribing to
-        # https://dev.twitter.com/
-        'consumer_key': '<your twitter key>',
-        'consumer_secret': '<your twitter secret>',
-    }
-
-creation of the table of the services
--------------------------------------
-
-enter the following command
-
-.. code-block:: bash
-
-    python manage.py migrate
-
-
-from the admin panel, activation of the service
------------------------------------------------
-
-from http://yourdomain.com/admin/django_th/servicesactivated/add/
-
-* Select "Twitter",
-* Set the Status to "Enabled"
-* Check Auth Required: this will permit to redirect the user (or you) to Twitter website to confirm the access of the Twitter account
-* Fill a description

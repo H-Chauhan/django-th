@@ -24,7 +24,12 @@ needs_sphinx = '1.3'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = []
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -96,6 +101,14 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 # html_theme_options = {}
+html_theme_options = {
+    'show_powered_by': False,
+    'github_user': 'foxmask',
+    'github_repo': 'django-th',
+    'github_banner': True,
+    'show_related': False,
+    'note_bg': '#FFF59C'
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -130,7 +143,9 @@ html_static_path = ['_static']
 # html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-# html_sidebars = {}
+html_sidebars = {
+    '**': ['sidebar.html', 'localtoc.html', 'relations.html', 'searchbox.html']
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -149,7 +164,7 @@ html_static_path = ['_static']
 # html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-# html_show_sphinx = True
+html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 # html_show_copyright = True
@@ -227,8 +242,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'TriggerHappy', u'Trigger Happy Documentation',
-     u'foxmask', 'TriggerHappy', 'take the control of your data with this'
-                                 'opensource clone of IFTTT',
+     u'foxmask', 'TriggerHappy', 'Steamer bridge for your internet services'
      'Miscellaneous'),
 ]
 
